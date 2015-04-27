@@ -15,9 +15,11 @@ app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 
 app.get('/', function (req, res, next) {
+  res.redirect("/1");
+});
+app.get('/:page', function (req, res, next) {
   var page = req.params.page||1;
-  var docs=Post.find().limit(10);
-  Post.find().limit(10).exec(function (err, docs) {
+  Post.find().skip((page-1)*30).limit(30).exec(function (err, docs) {
     res.render('home', {docs: docs});
   })
 
