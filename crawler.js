@@ -8,25 +8,22 @@ var eventproxy = require('eventproxy');
 var config = require('./config');
 
 var q=async.queue(function(task,callback){
-    console.log("task=="+task);
     var postUrl = task;
-    var ep = new eventproxy();
-    ep.fail(callback);
 
     // 如果帖子已经抓取过就不再抓取
-    Post.findOne({url: postUrl}, ep.done(function (post) {
+    Post.findOne({url: postUrl}, function (post) {
         if (!post) {
-            console.log("进来次数")
-            ep.emit('fetch_author');
+            checkImg(postUrl)
         }
-
-    }));
-    ep.all('fetch_author', function () {
-        superagent.get(postUrl).end(ep.done(function (res) {
+    });
+    var checkImg=function(postUrl){
+        superagent.get(postUrl)
+            .set('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36')
+            .set('Cookie', config.topic_cookie)
+            .end(function (res) {
             if (res.status !== 200) {
                 return;
             }
-            console.log("postUrl=="+postUrl);
             var topicUrl = postUrl;
             var topicHtml = res.text;
             var $ = cheerio.load(topicHtml);
@@ -39,34 +36,36 @@ var q=async.queue(function(task,callback){
                     author: $("#content .pageheader span").text()
                 });
                 post.save();
+
             }
+              callback();
 
-        }))
-        });
-    },1);
+        })
+    }
 
-function fetchPics() {
-    var ep = new eventproxy();
-    ep.fail(function (err) {
-        console.error(err);
-    });
-  superagent.get('http://www.topit.me/?p=1')
-    .set('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36')
-    //.set('Cookie', config.douban_cookie)
-    .end(ep.done(function (res) {
-          var $ = cheerio.load(res.text);
-          $('.catalog .e.m a').each(function(idx,element){
-              var $element=$(element);
-              var href=$element.attr("href");
-              q.push(href,ep.done(function () {}));
-          })
-      }));
+    },2);
+
+function fetchPics(count) {
+    for(var i=1;i<count;i++){
+        superagent.get('http://www.topit.me/?p='+i)
+            .set('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36')
+            .set('Cookie', config.topic_cookie)
+            .end(function (res) {
+                var $ = cheerio.load(res.text);
+                $('#canvas .catalog .e.m .title a').each(function(idx,element){
+                    var $element=$(element);
+                    var href=$element.attr("href");
+                    q.push(href,function (){console.log(href+"获取完毕")});
+                })
+            });
+    }
+
 
 }
 
 exports.start = function () {
-  fetchPics();
+  fetchPics(100);
 
   // 每分钟运行一次
-  //setInterval(fetchPics, 60 * 1000);
+  setInterval(fetchPics, 60 * 1000);
 };

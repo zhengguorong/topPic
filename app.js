@@ -20,14 +20,14 @@ app.get('/', function (req, res, next) {
 app.get('/:page', function (req, res, next) {
   var page = req.params.page||1;
   Post.find().skip((page-1)*30).limit(30).exec(function (err, docs) {
-    res.render('home', {docs: docs});
+    res.render('home', {docs: docs,nextPage:Number(page)+1});
   })
 
 });
 
 
 // 启动爬虫
-crawler.start();
+//crawler.start();
 
 var server = app.listen(config.port, function () {
   console.log('app is listening ' + server.address().port);

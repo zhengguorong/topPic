@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <title>Document</title>
 </head>
-<body>
+<body style="margin: auto;width: 1020px">
+<ul>
 {{#each docs}}
-    <p><img src="{{img}}" alt=""/></p>
+    <li style="float: left;list-style-type: none"> <p><img width="300px;" src="{{img}}" alt=""/></p></li>
 {{/each}}
+</ul>
+<a href="/{{nextPage}}">下一页</a>
 </body>
 </html>
