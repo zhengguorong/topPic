@@ -1,15 +1,38 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Document</title>
+    <title>infinitescroll</title>
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/waterfall.css">
 </head>
-<body style="margin: auto;width: 1020px">
-<ul>
-{{#each docs}}
-    <li style="float: left;list-style-type: none"> <p><img width="300px;" src="{{img}}" alt=""/></p></li>
-{{/each}}
-</ul>
-<a href="/{{nextPage}}">下一页</a>
+<body>
+<div id="header">
+    <h1>infinitescroll</h1>
+</div>
+<div id="container"></div>
+<script type="text/x-handlebars-template" id="waterfall-tpl">
+    {{#result}}
+        <div class="item">
+            <img src="{{image}}" width="{{width}}" height="{{height}}" />
+        </div>
+    {{/result}}
+</script>
+<script src="js/libs/jquery/jquery.js"></script>
+<script src="js/libs/handlebars/handlebars.js"></script>
+<script src="js/waterfall.min.js"></script>
+<script>
+    $('#container').waterfall({
+        itemCls: 'item',
+        colWidth: 222,
+        gutterWidth: 15,
+        gutterHeight: 15,
+        checkImagesLoaded: false,
+        path: function(page) {
+//            return 'data/data1.json?page=' + page;
+            return '/' + page;
+        }
+    });
+</script>
 </body>
 </html>
